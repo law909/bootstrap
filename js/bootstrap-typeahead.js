@@ -48,7 +48,9 @@
       this.$element
         .val(this.updater(val))
         .change()
-      return this.hide()
+      this.hide()
+	  if (typeof this.options.onselect == 'function') this.options.onselect.apply(this, this.$element)
+	  return this
     }
 
   , updater: function (item) {
@@ -148,26 +150,34 @@
       return this
     }
 
+  , scrollToVisible: function(who) {
+		var whobottom = this.$menu.scrollTop() + who.position().top + who.outerHeight(),
+			menubottom = this.$menu.height()
+		if (whobottom > menubottom) {
+			this.$menu.scrollTop(whobottom - menubottom);
+		}
+  }
+
   , next: function (event) {
-      var active = this.$menu.find('.active').removeClass('active')
+      var active = this.$menu.find('.active')
         , next = active.next()
 
-      if (!next.length) {
-        next = $(this.$menu.find('li')[0])
+      if (next.length) {
+		  active.removeClass('active')
+	      this.scrollToVisible(next.addClass('active'))
       }
 
-      next.addClass('active')
     }
 
   , prev: function (event) {
-      var active = this.$menu.find('.active').removeClass('active')
+      var active = this.$menu.find('.active')
         , prev = active.prev()
 
-      if (!prev.length) {
-        prev = this.$menu.find('li').last()
+      if (prev.length) {
+		  active.removeClass('active')
+	      this.scrollToVisible(prev.addClass('active'))
       }
 
-      prev.addClass('active')
     }
 
   , listen: function () {
@@ -249,6 +259,11 @@
           if (!this.shown) return
           this.hide()
           break
+
+		case 40: // down arrow
+        case 38: // up arrow
+		  if (!this.shown) this.lookup()
+		  break
 
         default:
           this.lookup()
